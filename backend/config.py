@@ -1,40 +1,34 @@
 import os
+from dotenv import load_dotenv
 from dataclasses import dataclass
 
-from dotenv import load_dotenv
-
-
 load_dotenv()
-
-
-@dataclass(frozen=True)
-class PineconeSettings:
+@dataclass(frozen = True)
+class PineconeConfig:
     api_key: str = os.getenv("PINECONE_API_KEY", "")
     index_name: str = os.getenv("PINECONE_INDEX_NAME", "document-qa-chatbot")
-    namespace_chunks: str = os.getenv("PINECONE_NAMESPACE_CHUNKS", "chunks")
-    namespace_docs: str = os.getenv("PINECONE_NAMESPACE_DOCS", "docs")
-    cloud: str = os.getenv("PINECONE_CLOUD", "aws")
-    region: str = os.getenv("PINECONE_REGION", "us-east-1")
     dimension: int = int(os.getenv("PINECONE_DIMENSION", "3072"))
-    similarity_threshold: float = float(os.getenv("DOC_SIMILARITY_THRESHOLD", "0.9"))
+    chunks_workspace: str = os.getenv("PINECONE_CHUNKS_WORKSPACE", "chunks")
+    docs_workspace: str = os.getenv("PINECONE_DOCS_WORKSPACE", "docs")
+    region: str = os.getenv("PINECONE_REGION", "us-east-1")
+    cloud: str = os.getenv("PINECONE_CLOUD", "aws")
+    threshold: float = float(os.getenv("PINECONE_THRESHOLD", "0.5"))
 
-
-@dataclass(frozen=True)
-class LLMSettings:
-    api: str = os.getenv("GOOGLE_API_KEY", "")
+@dataclass(frozen = True)
+class GoogleGenaiConfig:
+    api_key: str = os.getenv("GOOGLE_API_KEY", "")
     model: str = os.getenv("GOOGLE_MODEL", "gemini-2.5-flash")
-    embedding_model: str = os.getenv("EMBED_MODEL", "models/gemini-embedding-001")
+    embed_model: str = os.getenv("GOOGLE_EMBED_MODEL", "models/gemini-embedding-001")
 
-@dataclass(frozen=True)
+@dataclass(frozen = True)
 class AppSettings:
-    pinecone: PineconeSettings = PineconeSettings()
-    llm: LLMSettings = LLMSettings()
+    pinecone: PineconeConfig = PineconeConfig()
+    google_genai: GoogleGenaiConfig = GoogleGenaiConfig()
 
-def validate_settings() -> None:
-    pinecone_settings = PineconeSettings()
-    llm_settings = LLMSettings()
-    if not pinecone_settings.api_key:
-        raise ValueError("PINECONE_API_KEY is not set in environment.")
-    if not llm_settings.api:
-        raise ValueError("GOOGLE_API_KEY is not set in environment.")
+app_settings = AppSettings()
 
+def validate_environment() -> None:
+    if not app_settings.pinecone.api_key:
+        raise ValueError("PINECONE_API_KEY is not set")
+    if not app_settings.google_genai.api_key:
+        raise ValueError("GOOGLE_API_KEY is not set")
